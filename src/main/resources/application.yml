@@ -1,0 +1,22 @@
+spring:
+  application:
+    name: ${DISCOVERY_SERVICE_NAME:em-discovery}
+
+  docker:
+    compose:
+      enabled: ${DOCKER_COMPOSE_ENABLED:false}
+
+server:
+  port: ${SERVER_PORT:8761}  # Стандартный порт Eureka сервера
+
+eureka:
+  client:
+    register-with-eureka: ${EUREKA_REGISTER_SELF:false}  # Не регистрировать самого себя
+    fetch-registry: ${EUREKA_FETCH_REGISTRY:false}  # Не получать реестр от других
+  server:
+    wait-time-in-ms-when-sync-empty: ${EUREKA_WAIT_TIME_SYNC:0}  # Не ждать, если реестр пуст
+    enable-self-preservation: ${EUREKA_SELF_PRESERVATION:true}  # Включить самосохранение
+    renewal-percent-threshold: ${EUREKA_RENEWAL_THRESHOLD:0.85}  # Пороговое значение обновления (85%)
+    eviction-interval-timer-in-ms: ${EUREKA_EVICTION_INTERVAL:60000}  # Интервал проверки на устаревание
+    response-cache-update-interval-ms: ${EUREKA_CACHE_UPDATE_INTERVAL:30000}  # Интервал обновления кэша ответов
+    response-cache-auto-expiration-in-seconds: ${EUREKA_CACHE_EXPIRATION:180}  # Время жизни кэша ответов
