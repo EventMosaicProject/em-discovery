@@ -1,22 +1,51 @@
 spring:
   application:
-    name: ${DISCOVERY_SERVICE_NAME:em-discovery}
+    name: ${SERVICE_NAME:em-discovery}
 
   docker:
     compose:
       enabled: ${DOCKER_COMPOSE_ENABLED:false}
 
 server:
-  port: ${SERVER_PORT:8761}  # Стандартный порт Eureka сервера
+  port: ${SERVER_PORT:8761}
+
+management:
+  server:
+    port: ${ACTUATOR_PORT:8081}
+  endpoints:
+    web:
+      exposure:
+        include: ${ACTUATOR_ENDPOINTS:health,info,metrics}                                      # Список разрешенных эндпоинтов мониторинга
+  endpoint:
+    health:
+      show-details: ${HEALTH_DETAILS_VISIBLE:always}                                            # Уровень детализации информации о здоровье сервиса
 
 eureka:
+  instance:
+    hostname: ${EUREKA_INSTANCE_HOSTNAME:localhost}                                             # Имя хоста для регистрации в сети
+    prefer-ip-address: ${EUREKA_PREFER_IP:true}                                                 # Использовать IP вместо имени хоста
+    lease-renewal-interval-in-seconds: ${EUREKA_HEARTBEAT_INTERVAL:5}                           # Как часто сервис будет отправлять сигнал что он жив
+    lease-expiration-duration-in-seconds: ${EUREKA_LEASE_EXPIRATION:15}                         # Через сколько считать сервис мертвым если нет сигнала
+    metadata-map:
+      instanceId: ${spring.application.name}:${server.port}                                     # Уникальный идентификатор экземпляра
+      zone: ${EUREKA_ZONE:primary}                                                              # Зона размещения для балансировки нагрузки
+
   client:
-    register-with-eureka: ${EUREKA_REGISTER_SELF:false}  # Не регистрировать самого себя
-    fetch-registry: ${EUREKA_FETCH_REGISTRY:false}  # Не получать реестр от других
+    register-with-eureka: false                                                                 # Не регистрировать сам себя
+    fetch-registry: false                                                                       # Не загружать список сервисов
+
   server:
-    wait-time-in-ms-when-sync-empty: ${EUREKA_WAIT_TIME_SYNC:0}  # Не ждать, если реестр пуст
-    enable-self-preservation: ${EUREKA_SELF_PRESERVATION:true}  # Включить самосохранение
-    renewal-percent-threshold: ${EUREKA_RENEWAL_THRESHOLD:0.85}  # Пороговое значение обновления (85%)
-    eviction-interval-timer-in-ms: ${EUREKA_EVICTION_INTERVAL:60000}  # Интервал проверки на устаревание
-    response-cache-update-interval-ms: ${EUREKA_CACHE_UPDATE_INTERVAL:30000}  # Интервал обновления кэша ответов
-    response-cache-auto-expiration-in-seconds: ${EUREKA_CACHE_EXPIRATION:180}  # Время жизни кэша ответов
+    enable-self-preservation: ${EUREKA_SELF_PRESERVATION:false}                                 # Защита от массового отключения сервисов при проблемах сети
+    renewal-percent-threshold: ${EUREKA_RENEWAL_THRESHOLD:0.85}                                 # Процент обновлений, ниже которого включается защита
+    eviction-interval-timer-in-ms: ${EUREKA_EVICTION_INTERVAL:5000}                             # Как часто проверять и удалять мертвые сервисы
+    response-cache-update-interval-ms: ${EUREKA_CACHE_UPDATE_INTERVAL:5000}                     # Как часто обновлять кэш ответов
+    response-cache-auto-expiration-in-seconds: ${EUREKA_CACHE_EXPIRATION:60}                    # Время жизни кэша
+    wait-time-in-ms-when-sync-empty: ${EUREKA_SYNC_WAIT_TIME:5000}                              # Время ожидания при пустом реестре
+
+logging:
+  level:
+    root: ${LOG_LEVEL_ROOT:INFO}                                                                # Общий уровень логирования
+    com.netflix.eureka: ${LOG_LEVEL_EUREKA:INFO}                                                # Уровень логов Eureka
+    com.netflix.discovery: ${LOG_LEVEL_DISCOVERY:INFO}                                          # Уровень логов Discovery Client
+  pattern:
+    console: ${LOG_PATTERN:"%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"}   # Формат вывода логов
